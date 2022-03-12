@@ -1,24 +1,22 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 )
 
-type HandleFunc func(w http.ResponseWriter, r *http.Request)
+type HandleFunc func(ctx *Context)
 
 type Engine struct {
-	router map[string]HandleFunc
+	router *router
 }
 
 func New() *Engine {
-	return &Engine{router: make(map[string]HandleFunc)}
+	return &Engine{router: newRouter()}
 }
 
 // addRouter 添加路由表，例如key是GET-/  POST-/hello
 func (e *Engine) addRouter(method string, pattern string, handler HandleFunc) {
-	key := method + "-" + pattern
-	e.router[key] = handler
+	e.router.addRouter(method, pattern, handler)
 }
 
 // GET 将该方法注册到路由表中
@@ -37,13 +35,6 @@ func (e *Engine) Run(addr string) error {
 }
 
 func (e *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	// 组成key
-	key := req.Method + "-" + req.URL.Path
-	// 查表取出构成函数
-	if handler, ok := e.router[key]; ok {
-		handler(w, req)
-	} else {
-		// 没有找到处理方法
-		_, _ = fmt.Fprintf(w, "404 NOT FOUND: %s\n", req.URL)
-	}
+	c := newContext(w, req)
+	e.router.handle(c)
 }
