@@ -11,12 +11,13 @@ type Engine struct {
 }
 
 func New() *Engine {
-	return &Engine{router: newRouter()}
+	e := &Engine{router: newRouter()}
+	return e
 }
 
 // addRouter 添加路由表，例如key是GET-/  POST-/hello
 func (e *Engine) addRouter(method string, pattern string, handler HandleFunc) {
-	e.router.addRouter(method, pattern, handler)
+	e.router.addRoute(method, pattern, handler)
 }
 
 // GET 将该方法注册到路由表中
